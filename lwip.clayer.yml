@@ -1,0 +1,59 @@
+layer:
+  # A layer is a collection of pre-configured source files or components
+  type: LwIP
+  description: lwIP TCP/IP stack (NO_SYS and RTOS capable)
+
+  add-path:
+    # lwIP public headers and the compiler/arch port (arch/cc.h)
+    - ./src/include
+    - ./port
+
+  groups:
+    - group: lwip/core
+      files:
+        - file: ./src/core/def.c
+        - file: ./src/core/dns.c
+        - file: ./src/core/inet_chksum.c
+        - file: ./src/core/init.c
+        - file: ./src/core/ip.c
+        - file: ./src/core/mem.c
+        - file: ./src/core/memp.c
+        - file: ./src/core/netif.c
+        - file: ./src/core/pbuf.c
+        - file: ./src/core/raw.c
+        - file: ./src/core/stats.c
+        - file: ./src/core/sys.c
+        - file: ./src/core/tcp.c
+        - file: ./src/core/tcp_in.c
+        - file: ./src/core/tcp_out.c
+        - file: ./src/core/timeouts.c
+        - file: ./src/core/udp.c
+
+    - group: lwip/core/ipv4
+      files:
+        - file: ./src/core/ipv4/autoip.c
+        - file: ./src/core/ipv4/dhcp.c
+        - file: ./src/core/ipv4/etharp.c
+        - file: ./src/core/ipv4/icmp.c
+        - file: ./src/core/ipv4/igmp.c
+        - file: ./src/core/ipv4/ip4.c
+        - file: ./src/core/ipv4/ip4_addr.c
+        - file: ./src/core/ipv4/ip4_frag.c
+
+    - group: lwip/api
+      files:
+        - file: ./src/api/api_lib.c
+        - file: ./src/api/api_msg.c
+        - file: ./src/api/err.c
+        - file: ./src/api/if_api.c
+        - file: ./src/api/netbuf.c
+        - file: ./src/api/netdb.c
+        - file: ./src/api/netifapi.c
+        - file: ./src/api/sockets.c
+        - file: ./src/api/tcpip.c
+
+    - group: lwip/netif
+      files:
+        - file: ./src/netif/bridgeif.c
+        - file: ./src/netif/bridgeif_fdb.c
+        - file: ./src/netif/ethernet.c
