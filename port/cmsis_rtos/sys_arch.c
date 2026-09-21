@@ -39,7 +39,10 @@
 
 #if !NO_SYS
 
-#include "cmsis_os.h"
+/* CMSIS-RTOS2 API. cmsis_compiler.h brings in __NOP() (the CMSIS 5 cmsis_os.h
+ * defined portNOP() for it, which no longer exists). */
+#include "cmsis_os2.h"
+#include "cmsis_compiler.h"
 
 #if defined(LWIP_PROVIDE_ERRNO)
 int errno;
@@ -49,7 +52,7 @@ int errno;
 //  Creates an empty mailbox.
 err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osMessageQDef(QUEUE, size, void *);
 	*mbox = osMessageCreate(osMessageQ(QUEUE), NULL);
 #else
@@ -76,19 +79,19 @@ err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 */
 void sys_mbox_free(sys_mbox_t *mbox)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	if (osMessageWaiting(*mbox))
 #else
 	if (osMessageQueueGetCount(*mbox))
 #endif
 	{
 		/* Line for breakpoint.  Should never break here! */
-		portNOP();
+		__NOP();
 #if SYS_STATS
 		lwip_stats.sys.mbox.err++;
 #endif /* SYS_STATS */
 	}
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osMessageDelete(*mbox);
 #else
 	osMessageQueueDelete(*mbox);
@@ -102,7 +105,7 @@ void sys_mbox_free(sys_mbox_t *mbox)
 //   Posts the "msg" to the mailbox.
 void sys_mbox_post(sys_mbox_t *mbox, void *data)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	while (osMessagePut(*mbox, (uint32_t)data, osWaitForever) != osOK) {
 	}
 #else
@@ -116,7 +119,7 @@ void sys_mbox_post(sys_mbox_t *mbox, void *data)
 err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 {
 	err_t result;
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	if (osMessagePut(*mbox, (uint32_t)msg, 0) == osOK)
 #else
 	if (osMessageQueuePut(*mbox, &msg, 0, 0) == osOK)
@@ -160,7 +163,7 @@ err_t sys_mbox_trypost_fromisr(sys_mbox_t *mbox, void *msg)
 */
 u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osEvent event;
 	uint32_t starttime = osKernelSysTick();
 #else
@@ -168,7 +171,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 	uint32_t starttime = osKernelGetTickCount();
 #endif
 	if (timeout != 0) {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 		event = osMessageGet(*mbox, timeout);
 
 		if (event.status == osEventMessage) {
@@ -185,7 +188,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 			return SYS_ARCH_TIMEOUT;
 		}
 	} else {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 		event = osMessageGet(*mbox, osWaitForever);
 		*msg = (void *)event.value.v;
 		return (osKernelSysTick() - starttime);
@@ -203,7 +206,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 */
 u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osEvent event;
 
 	event = osMessageGet(*mbox, 0);
@@ -240,7 +243,7 @@ void sys_mbox_set_invalid(sys_mbox_t *mbox)
 //  the initial state of the semaphore.
 err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osSemaphoreDef(SEM);
 	*sem = osSemaphoreCreate(osSemaphore(SEM), 1);
 #else
@@ -256,7 +259,7 @@ err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 
 	if (count == 0) // Means it can't be taken
 	{
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 		osSemaphoreWait(*sem, 0);
 #else
 		osSemaphoreAcquire(*sem, 0);
@@ -291,13 +294,13 @@ err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 */
 u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	uint32_t starttime = osKernelSysTick();
 #else
 	uint32_t starttime = osKernelGetTickCount();
 #endif
 	if (timeout != 0) {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 		if (osSemaphoreWait(*sem, timeout) == osOK) {
 			return (osKernelSysTick() - starttime);
 #else
@@ -308,7 +311,7 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 			return SYS_ARCH_TIMEOUT;
 		}
 	} else {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 		while (osSemaphoreWait(*sem, osWaitForever) != osOK) {
 		}
 		return (osKernelSysTick() - starttime);
@@ -355,7 +358,7 @@ void sys_sem_set_invalid(sys_sem_t *sem)
 }
 
 /*-----------------------------------------------------------------------------------*/
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 osMutexId lwip_sys_mutex;
 osMutexDef(lwip_sys_mutex);
 #else
@@ -364,7 +367,7 @@ osMutexId_t lwip_sys_mutex;
 // Initialize sys arch
 void sys_init(void)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	lwip_sys_mutex = osMutexCreate(osMutex(lwip_sys_mutex));
 #else
 	lwip_sys_mutex = osMutexNew(NULL);
@@ -379,7 +382,7 @@ void sys_init(void)
 /* Create a new mutex*/
 err_t sys_mutex_new(sys_mutex_t *mutex)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osMutexDef(MUTEX);
 	*mutex = osMutexCreate(osMutex(MUTEX));
 #else
@@ -417,7 +420,7 @@ void sys_mutex_free(sys_mutex_t *mutex)
 /* Lock a mutex*/
 void sys_mutex_lock(sys_mutex_t *mutex)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osMutexWait(*mutex, osWaitForever);
 #else
 	osMutexAcquire(*mutex, osWaitForever);
@@ -444,7 +447,7 @@ void sys_mutex_unlock(sys_mutex_t *mutex)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize,
 			    int prio)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	const osThreadDef_t os_thread_def = {(char *)name, (os_pthread)thread, (osPriority)prio, 0,
 					     stacksize};
 	return osThreadCreate(&os_thread_def, arg);
@@ -476,7 +479,7 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, 
 */
 sys_prot_t sys_arch_protect(void)
 {
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 	osMutexWait(lwip_sys_mutex, osWaitForever);
 #else
 	osMutexAcquire(lwip_sys_mutex, osWaitForever);

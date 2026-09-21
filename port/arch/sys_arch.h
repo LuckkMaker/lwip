@@ -40,7 +40,7 @@
 #endif
 
 #if (CONFIG_CMSIS_RTOS_V2 != 0)
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
 #elif (CONFIG_FREERTOS != 0)
 #include "FreeRTOS.h"
 #include "task.h"
@@ -54,7 +54,7 @@ extern "C" {
 #endif
 
 #if (CONFIG_CMSIS_RTOS_V2 != 0)
-#if (osCMSIS < 0x20000U)
+#if (defined(osCMSIS) && (osCMSIS < 0x20000U))
 
 #define SYS_MBOX_NULL (osMessageQId)0
 #define SYS_SEM_NULL  (osSemaphoreId)0
