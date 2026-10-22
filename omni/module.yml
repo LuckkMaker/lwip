@@ -1,0 +1,7 @@
+name: lwip
+build:
+  cmake: .
+  kconfig: Kconfig
+enable: LWIP
+settings:
+  layer: lwip.clayer.yml

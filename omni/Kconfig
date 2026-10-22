@@ -1,0 +1,7 @@
+# lwIP 模块的 Kconfig 符号（由 omni/Kconfig.modules 引入）。
+
+config LWIP
+    bool "lwIP TCP/IP stack"
+    default n
+    help
+        Enable the lwIP TCP/IP stack (NO_SYS and RTOS capable).
